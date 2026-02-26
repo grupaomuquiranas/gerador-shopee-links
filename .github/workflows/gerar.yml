@@ -18,10 +18,13 @@ jobs:
 
     - run: python gerar.py
 
-    - name: Commit resultado
-      run: |
-        git config --global user.name "bot"
-        git config --global user.email "bot@github.com"
-        git add resultado.txt
-        git commit -m "Gerado"
-        git push
+   - name: Commit resultado
+  run: |
+    git config --global user.name "bot"
+    git config --global user.email "bot@github.com"
+
+    git add resultado.txt
+
+    git commit -m "Gerado" || echo "Nada para salvar"
+
+    git push || echo "Nada para enviar"
