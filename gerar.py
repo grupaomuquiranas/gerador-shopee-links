@@ -1,63 +1,107 @@
+import time
+import hashlib
+import hmac
 import requests
-import urllib.parse
+import os
 
-# SEU ID + SUBID
-AFILIADO = "18368450207.Grupaomuquiranas"
+# Segredos vindos do GitHub
+PARTNER_ID = os.getenv("SHOPEE_PARTNER_ID")
+APP_SECRET = os.getenv("SHOPEE_APP_SECRET")
+APP_KEY = os.getenv("SHOPEE_APP_KEY")
+
+BASE_ID = "18368450207"
+SUB_BASE = "Grupaomuquiranas"
+
+API_URL = "https://open-api.affiliate.shopee.com.br/graphql"
 
 
-def criar_link_afiliado(url):
-    # Remove parâmetros antigos
-    base = url.split("?")[0]
+def gerar_sign(path, timestamp):
+    base = f"{PARTNER_ID}{path}{timestamp}"
+    return hmac.new(
+        APP_SECRET.encode(),
+        base.encode(),
+        hashlib.sha256
+    ).hexdigest()
 
-    # Adiciona seu ID corretamente
-    return base + "?smtt=" + AFILIADO
 
+def converter(url, subid):
 
-def encurtar(url):
-    api = "https://is.gd/create.php"
-    params = {
-        "format": "simple",
-        "url": url
+    path = "/graphql"
+    ts = int(time.time())
+
+    sign = gerar_sign(path, ts)
+
+    headers = {
+        "Content-Type": "application/json"
     }
 
-    r = requests.get(api, params=params, timeout=20)
+    query = f"""
+    mutation {{
+      generateShortLink(
+        input: {{
+          originalLink: "{url}"
+          subIds: ["{subid}"]
+        }}
+      ) {{
+        shortLink
+      }}
+    }}
+    """
 
-    return r.text.strip()
+    payload = {
+        "query": query
+    }
+
+    params = {
+        "partner_id": PARTNER_ID,
+        "timestamp": ts,
+        "sign": sign
+    }
+
+    r = requests.post(
+        API_URL,
+        params=params,
+        headers=headers,
+        json=payload,
+        timeout=30
+    )
+
+    data = r.json()
+
+    if "errors" in data:
+        print("Erro:", data["errors"])
+        return "ERRO"
+
+    return data["data"]["generateShortLink"]["shortLink"]
 
 
 # Ler até 5 links
-with open("links.txt", "r", encoding="utf-8") as f:
-    links = f.read().splitlines()[:5]
+with open("links.txt", encoding="utf-8") as f:
+    linhas = f.read().splitlines()[:5]
 
 
 resultado = []
 
 
-for link in links:
+for linha in linhas:
 
-    link = link.strip()
-
-    if not link:
+    if "|" not in linha:
         continue
 
-    # Criar link afiliado CORRETO
-    afiliado = criar_link_afiliado(link)
+    nome, link = linha.split("|", 1)
 
-    # Encurtar depois
-    curto = encurtar(afiliado)
+    nome = nome.strip().replace(" ", "")
 
-    resultado.append(curto)
+    subid = f"{SUB_BASE}-{nome}"
+
+    curto = converter(link.strip(), subid)
+
+    resultado.append(f"{nome}: {curto}")
 
 
-# Salvar resultado
 with open("resultado.txt", "w", encoding="utf-8") as f:
-
-    if not resultado:
-        f.write("NENHUM LINK GERADO\n")
-
-    else:
-        for r in resultado:
-            f.write(r + "\n")
+    for r in resultado:
+        f.write(r + "\n")
 
 
-print("Concluído com ID correto")
+print("FINALIZADO")
