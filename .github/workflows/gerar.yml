@@ -26,12 +26,4 @@ jobs:
         SHOPEE_APP_SECRET: ${{ secrets.SHOPEE_APP_SECRET }}
         SHOPEE_APP_KEY: ${{ secrets.SHOPEE_APP_KEY }}
 
-    - name: Commit resultado
-      run: |
-        git config --global user.name "bot"
-        git config --global user.email "bot@github.com"
-        git add resultado.txt
-        git commit -m "Gerado"
-        git push
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
