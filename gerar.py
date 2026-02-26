@@ -15,14 +15,12 @@ SUB_BASE = "Grupaomuquiranas"
 
 API_URL = "https://open-api.affiliate.shopee.com.br/graphql"
 
-
 def gerar_sign(path, timestamp):
     """
     Cria assinatura HMAC para autenticação na API
     """
     base = f"{PARTNER_ID}{path}{timestamp}"
     return hmac.new(APP_SECRET.encode(), base.encode(), hashlib.sha256).hexdigest()
-
 
 def converter(url, subid):
     """
@@ -63,7 +61,6 @@ def converter(url, subid):
     except Exception as e:
         print(f"Exception no link {url}: {e}")
         return "ERRO"
-
 
 # Ler até 5 links do links.txt
 with open("links.txt", encoding="utf-8") as f:
