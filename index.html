@@ -64,36 +64,47 @@
     }
 
     // Função principal
-    async function gerar() {
-      const texto = document.getElementById("links").value;
-      const linhas = texto.split("\n").slice(0, 5); // limita em 5
+    <script>
+  // SEU ID + SUBID
+  const afiliado = "18368450207.Grupaomuquiranas";
 
-      let saida = [];
+  // Encurtador com TinyURL (funciona no GitHub Pages)
+  async function encurtar(url) {
+    const api =
+      "https://tinyurl.com/api-create.php?url=" +
+      encodeURIComponent(url);
 
-      document.getElementById("resultado").value = "Gerando...";
+    const res = await fetch(api);
+    return await res.text();
+  }
 
-      for (let link of linhas) {
-        if (link.trim() !== "") {
+  async function gerar() {
+    const texto = document.getElementById("links").value;
+    const linhas = texto.split("\n").slice(0, 5);
 
-          // Cria link afiliado
-          let afiliadoLink =
-            link.trim() + "?smtt=" + afiliado;
+    let saida = [];
 
-          try {
-            // Encurta
-            let curto = await encurtar(afiliadoLink);
-            saida.push(curto);
+    document.getElementById("resultado").value = "Gerando...";
 
-          } catch {
-            saida.push("Erro: " + afiliadoLink);
-          }
+    for (let link of linhas) {
+      if (link.trim() !== "") {
+
+        // Cria link afiliado + subid
+        let afiliadoLink =
+          link.trim() + "?smtt=" + afiliado;
+
+        try {
+          let curto = await encurtar(afiliadoLink);
+          saida.push(curto);
+
+        } catch {
+          saida.push("Erro: " + afiliadoLink);
         }
       }
-
-      document.getElementById("resultado").value =
-        saida.join("\n");
     }
-  </script>
 
-</body>
-</html>
+    document.getElementById("resultado").value =
+      saida.join("\n");
+  }
+</script>
+
